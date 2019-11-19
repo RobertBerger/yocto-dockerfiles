@@ -1,1 +1,1 @@
-CONTAINER_NAME="yocto-container"
+CONTAINER_NAME="yocto"

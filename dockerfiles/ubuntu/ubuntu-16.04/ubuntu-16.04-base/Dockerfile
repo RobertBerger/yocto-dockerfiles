@@ -49,6 +49,13 @@ RUN apt-get update && \
     useradd -U -m yoctouser && \
     /usr/sbin/locale-gen en_US.UTF-8
 
+# rber -->
+RUN apt-get install -y \
+        tree \
+        vim \
+        ccze
+# rber <--
+
 COPY build-install-dumb-init.sh /
 RUN  bash /build-install-dumb-init.sh && \
      rm /build-install-dumb-init.sh && \

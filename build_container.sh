@@ -2,7 +2,7 @@
 
 # runbitbake.py
 #
-# Copyright (C) 2016 Intel Corporation
+# Copyright (C) 2016-2019 Intel Corporation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -19,8 +19,13 @@
 
 set -e
 
+# Allow the user to specify another command to use for building such as podman
+if [ "${ENGINE_CMD}" = "" ]; then
+    ENGINE_CMD="docker"
+fi
+
 # DISTRO_TO_BUILD is essentially the prefix to the "base" and "builder"
-# directories you plan to use. i.e. "fedora-23" or "ubuntu-14.04"
+# directories you plan to use. i.e. "fedora-23" or "ubuntu-16.04"
 
 # First build the base
 TAG=$DISTRO_TO_BUILD-base
@@ -30,13 +35,15 @@ workdir=`mktemp --tmpdir -d tmp-$TAG.XXX`
 cp -r $dockerdir $workdir
 workdir=$workdir/$TAG
 
+cp install-multilib.sh $workdir
 cp build-install-dumb-init.sh $workdir
+cp install-buildtools.sh $workdir
 cd $workdir
 
 baseimage=`grep FROM Dockerfile | sed -e 's/FROM //'`
-docker pull $baseimage
+${ENGINE_CMD} pull $baseimage
 
-docker build \
+${ENGINE_CMD} build \
        --build-arg http_proxy=$http_proxy \
        --build-arg HTTP_PROXY=$http_proxy \
        --build-arg https_proxy=$https_proxy \
@@ -54,6 +61,7 @@ workdir=`mktemp --tmpdir -d tmp-$TAG.XXX`
 
 # use the builder template to populate the distro specific Dockerfile
 cp dockerfiles/templates/Dockerfile.builder $workdir/Dockerfile
+cp distro-entry.sh $workdir
 sed -i "s/DISTRO_TO_BUILD/$DISTRO_TO_BUILD/g" $workdir/Dockerfile
 
 cp helpers/runbitbake.py $workdir
@@ -63,7 +71,7 @@ cd $workdir
 sed -i -e "s#crops/yocto#$REPO#" Dockerfile
 
 # Lastly build the image
-docker build \
+${ENGINE_CMD} build \
        --build-arg http_proxy=$http_proxy \
        --build-arg HTTP_PROXY=$http_proxy \
        --build-arg https_proxy=$https_proxy \
@@ -74,8 +82,10 @@ docker build \
 cd -
 
 # base tests
-./tests/container/vnc-test.sh $REPO:$DISTRO_TO_BUILD-base
+ENGINE_CMD=${ENGINE_CMD}
+    ./tests/container/vnc-test.sh $REPO:$DISTRO_TO_BUILD-base
 # builder tests
-./tests/container/smoke.sh $REPO:$DISTRO_TO_BUILD-builder
+ENGINE_CMD=${ENGINE_CMD}
+    ./tests/container/smoke.sh $REPO:$DISTRO_TO_BUILD-builder
 
 rm $workdir -rf

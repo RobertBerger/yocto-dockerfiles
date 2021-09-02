@@ -17,7 +17,7 @@
 FROM ubuntu:16.04
 
 RUN apt-get update && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
         gawk \
         wget \
         git-core \
@@ -26,7 +26,6 @@ RUN apt-get update && \
         unzip \
         sysstat \
         texinfo \
-        gcc-multilib \
         build-essential \
         chrpath \
         socat \
@@ -47,7 +46,9 @@ RUN apt-get update && \
     echo "" | vncpasswd -f > /etc/vncskel/.vnc/passwd && \
     chmod 0600 /etc/vncskel/.vnc/passwd && \
     useradd -U -m yoctouser && \
-    /usr/sbin/locale-gen en_US.UTF-8
+    /usr/sbin/locale-gen en_US.UTF-8 && \
+    echo 'dash dash/sh boolean false' | debconf-set-selections && \
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
 # rber -->
 RUN apt-get install -y \
@@ -56,9 +57,18 @@ RUN apt-get install -y \
         ccze
 # rber <--
 
-COPY build-install-dumb-init.sh /
+# The versions of gcc, tar and other tools found in Ubuntu 16.04 are now too
+# old to build recent Yocto Project releases. Install the buildtools tarball to
+# provide the required tools.
+COPY install-buildtools.sh /
+RUN bash /install-buildtools.sh && \
+    rm /install-buildtools.sh
+
+COPY build-install-dumb-init.sh install-multilib.sh /
 RUN  bash /build-install-dumb-init.sh && \
      rm /build-install-dumb-init.sh && \
+     bash /install-multilib.sh && \
+     rm /install-multilib.sh && \
      apt-get clean
 
 USER yoctouser

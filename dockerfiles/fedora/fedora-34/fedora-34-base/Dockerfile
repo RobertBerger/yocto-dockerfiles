@@ -1,5 +1,5 @@
-# fedora-28-base
-# Copyright (C) 2015-2018 Intel Corporation
+# fedora-34-base
+# Copyright (C) 2021 Intel Corporation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -14,17 +14,18 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-FROM fedora:28
+FROM fedora:34
 
 RUN dnf -y update && \
     dnf -y install \
+	# These packages were copied straight from the Yocto Project reference
+        # manual which is why they are not alphabetized 
         gawk \
         make \
         wget \
         tar \
         bzip2 \
         gzip \
-        python \
         python3 \
         unzip \
         perl \
@@ -32,7 +33,6 @@ RUN dnf -y update && \
         diffutils \
         diffstat \
         git \
-        subversion \
         cpp \
         gcc \
         gcc-c++ \
@@ -44,20 +44,33 @@ RUN dnf -y update && \
         perl-Text-ParseWords \
         perl-Thread-Queue \
         perl-bignum \
-        rpcgen \
         socat \
+        python3-pexpect \
         findutils \
         which \
-        cpio \
         file \
+        cpio \
+        python \
+        python3-pip \
         xz \
-        screen \
-        tmux \
-        sudo \
+        python3-GitPython \
+        python3-jinja2 \
+        SDL-devel \
+        xterm \
+        rpcgen \
+
+        # These packages were added because of reasons such as fewer packages
+        # being in the container image by default
         fluxbox \
+        glibc-langpack-en \
         hostname \
         procps \
-        tigervnc-server && \
+        python-unversioned-command \
+        subversion \
+        sudo \
+        screen \
+        tigervnc-server \
+        tmux && \
     cp -af /etc/skel/ /etc/vncskel/ && \
     echo "export DISPLAY=1" >>/etc/vncskel/.bashrc && \
     mkdir  /etc/vncskel/.vnc && \

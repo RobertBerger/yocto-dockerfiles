@@ -1,5 +1,5 @@
-# DISTRO_TO_BUILD-builder
-# Copyright (C) 2015-2019 Intel Corporation
+#!/bin/bash
+# Copyright (C) 2019 Intel Corporation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -12,17 +12,17 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-FROM crops/yocto:DISTRO_TO_BUILD-base
+if [ "$(uname -m)" = "aarch64" ]; then
+    SETUPSCRIPT="environment-setup-aarch64-pokysdk-linux"
+elif [ "$(uname -m)" = "x86_64" ]; then
+    SETUPSCRIPT="environment-setup-x86_64-pokysdk-linux"
+fi
 
-USER root
-COPY distro-entry.sh runbitbake.py /usr/local/bin/
-RUN chown  yoctouser:yoctouser /usr/local/bin/runbitbake.py && \
-    chmod +x /usr/local/bin/runbitbake.py && \
-    chmod +x /usr/local/bin/distro-entry.sh
+# This entry point is so that we can do distro specific changes to the launch.
+if [ -e /opt/poky/3.1.3/${SETUPSCRIPT} ]; then
+    # Buildtools has been installed so enable it
+    . /opt/poky/3.1.3/${SETUPSCRIPT} || exit 1
+fi
 
-USER yoctouser
-
-WORKDIR /home/yoctouser
-ENTRYPOINT ["/usr/local/bin/distro-entry.sh", "/usr/local/bin/runbitbake.py"]
+exec "$@"

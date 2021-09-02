@@ -1,5 +1,5 @@
 # centos-7-base
-# Copyright (C) 2015-2016 Intel Corporation
+# Copyright (C) 2015-2019 Intel Corporation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -16,7 +16,7 @@
 
 FROM centos:centos7
 
-RUN yum -y install epel-release && \
+RUN yum -y install epel-release centos-release-scl && \
     yum -y update && \
     yum -y install \
         gawk \
@@ -58,6 +58,13 @@ RUN yum -y install epel-release && \
     chmod 0600 /etc/vncskel/.vnc/passwd && \
     groupadd -g 1000 yoctouser && \
     useradd -u 1000 -g yoctouser -m yoctouser
+
+# The versions of gcc, tar and other tools found in Centos 7 are now too old to
+# build recent Yocto Project releases. Install the buildtools tarball to
+# provide the required tools.
+COPY install-buildtools.sh /
+RUN bash /install-buildtools.sh && \
+    rm /install-buildtools.sh
 
 COPY build-install-dumb-init.sh /
 RUN  bash build-install-dumb-init.sh && \

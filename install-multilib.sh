@@ -1,5 +1,8 @@
-# DISTRO_TO_BUILD-builder
-# Copyright (C) 2015-2019 Intel Corporation
+#!/bin/bash
+
+# install-multilib.sh
+#
+# Copyright (C) 2020 Intel Corporation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -14,15 +17,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-FROM crops/yocto:DISTRO_TO_BUILD-base
-
-USER root
-COPY distro-entry.sh runbitbake.py /usr/local/bin/
-RUN chown  yoctouser:yoctouser /usr/local/bin/runbitbake.py && \
-    chmod +x /usr/local/bin/runbitbake.py && \
-    chmod +x /usr/local/bin/distro-entry.sh
-
-USER yoctouser
-
-WORKDIR /home/yoctouser
-ENTRYPOINT ["/usr/local/bin/distro-entry.sh", "/usr/local/bin/runbitbake.py"]
+# Don't try and install the multilib packages on arm64
+if [ "$(uname -m)" = "x86_64" ]; then
+    DEBIAN_FRONTEND=noninteractive apt-get install -y gcc-multilib g++-multilib
+fi

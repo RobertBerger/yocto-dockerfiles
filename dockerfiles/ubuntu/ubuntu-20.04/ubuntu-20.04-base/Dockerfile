@@ -63,7 +63,8 @@ RUN apt-get update && \
 RUN apt-get install -y \
         tree \
         vim \
-        ccze
+        ccze \
+        timelimit
 # rber <--
 
 # --> honister needs some extra HOSTTOOLS

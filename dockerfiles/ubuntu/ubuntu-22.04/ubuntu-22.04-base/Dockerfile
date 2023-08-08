@@ -61,6 +61,19 @@ RUN apt-get update && \
     echo 'dash dash/sh boolean false' | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
+# rber -->
+RUN apt-get install -y \
+        tree \
+        vim \
+        ccze \
+        timelimit
+# rber <--
+
+# --> honister needs some extra HOSTTOOLS
+RUN apt-get install -y liblz4-tool zstd
+# <-- honister needs some extra HOSTTOOLS
+
+
 COPY build-install-dumb-init.sh /
 RUN  bash /build-install-dumb-init.sh && \
      rm /build-install-dumb-init.sh && \
